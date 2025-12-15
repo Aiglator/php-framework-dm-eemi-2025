@@ -10,8 +10,6 @@ try {
     $request = new Request();
     $response = Router::route($request);
 
-    header($response->getHeadersAsString());
-    http_response_code($response->getStatus());
     echo $response->getContent();
     exit();
 } catch(\Exception $e) {
