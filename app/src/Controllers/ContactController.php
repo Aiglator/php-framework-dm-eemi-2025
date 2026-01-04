@@ -17,6 +17,8 @@ class ContactController extends AbstractController {
             return $this->getAllContacts($request);
         } elseif ($method === 'PATCH') {
             return $this->modifierContact($request);
+        } elseif ($method === 'DELETE') {
+            return $this->supprimerContact($request);
         }
 
         return new Response(
@@ -247,6 +249,37 @@ class ContactController extends AbstractController {
             json_encode($contact),
             200,
             ['Content-Type' => 'application/json']
+        );
+    }
+
+    private function supprimerContact(Request $request): Response {
+        $queryParams = $request->getQueryParams();
+
+        if (!isset($queryParams['filename'])) {
+            return new Response(
+                json_encode(['error' => 'filename parameter is required']),
+                400,
+                ['Content-Type' => 'application/json']
+            );
+        }
+
+        $dir = __DIR__ . '/../../var/contacts';
+        $filepath = $dir . '/' . $queryParams['filename'];
+
+        if (!file_exists($filepath)) {
+            return new Response(
+                json_encode(['error' => 'Contact not found']),
+                404,
+                ['Content-Type' => 'application/json']
+            );
+        }
+
+        unlink($filepath);
+
+        return new Response(
+            '',
+            204,
+            []
         );
     }
 
