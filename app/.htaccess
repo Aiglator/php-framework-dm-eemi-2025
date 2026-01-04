@@ -1,8 +1,12 @@
 RewriteEngine on
 
+# Permettre toutes les méthodes HTTP (GET, POST, PATCH, DELETE, etc.)
+RewriteCond %{REQUEST_METHOD} ^(GET|POST|PUT|PATCH|DELETE|OPTIONS)$
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule !\.(css|js|icon|zip|rar|png|jpg|gif|pdf)$ ./src/index.php [L,QSA,NC]
 
-RewriteRule !\.(css|js|icon|zip|rar|png|jpg|gif|pdf|json)$ ./src/index.php [L,QSA,NC]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^$ ./src/index.php [L,QSA,NC]
 
