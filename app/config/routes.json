@@ -13,5 +13,10 @@
     "path": "/contact",
     "method":"POST",
     "controller":"ContactController"
+  },
+  {
+    "path": "/contact",
+    "method": "GET",
+    "controller": "ContactController"
   }
 ]
