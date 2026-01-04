@@ -87,6 +87,12 @@ class ContactController extends AbstractController {
     }
 
     private function getAllContacts(Request $request): Response {
+        $queryParams = $request->getQueryParams();
+
+        if (isset($queryParams['filename'])) {
+            return $this->getOneContact($queryParams['filename']);
+        }
+
         $dir = __DIR__ . '/../../var/contacts';
 
         if (!is_dir($dir)) {
@@ -119,6 +125,36 @@ class ContactController extends AbstractController {
 
         return new Response(
             json_encode($contacts),
+            200,
+            ['Content-Type' => 'application/json']
+        );
+    }
+
+    private function getOneContact(string $filename): Response {
+        $dir = __DIR__ . '/../../var/contacts';
+        $filepath = $dir . '/' . $filename;
+
+        if (!file_exists($filepath)) {
+            return new Response(
+                json_encode(['error' => 'Contact not found']),
+                404,
+                ['Content-Type' => 'application/json']
+            );
+        }
+
+        $content = file_get_contents($filepath);
+        $contact = json_decode($content, true);
+
+        if ($contact === null) {
+            return new Response(
+                json_encode(['error' => 'Invalid contact file']),
+                500,
+                ['Content-Type' => 'application/json']
+            );
+        }
+
+        return new Response(
+            json_encode($contact),
             200,
             ['Content-Type' => 'application/json']
         );
