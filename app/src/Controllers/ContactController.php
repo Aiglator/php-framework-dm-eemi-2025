@@ -91,10 +91,10 @@ class ContactController extends AbstractController {
     }
 
     private function getAllContacts(Request $request): Response {
-        $queryParams = $request->getQueryParams();
+        $filename = $request->getUriParam('filename');
 
-        if (isset($queryParams['filename'])) {
-            return $this->getOneContact($queryParams['filename']);
+        if ($filename !== null) {
+            return $this->getOneContact($filename);
         }
 
         $dir = __DIR__ . '/../../var/contacts';
@@ -175,9 +175,9 @@ class ContactController extends AbstractController {
             );
         }
 
-        $queryParams = $request->getQueryParams();
+        $filename = $request->getUriParam('filename');
 
-        if (!isset($queryParams['filename'])) {
+        if ($filename === null) {
             return new Response(
                 json_encode(['error' => 'filename parameter is required']),
                 400,
@@ -186,7 +186,7 @@ class ContactController extends AbstractController {
         }
 
         $dir = __DIR__ . '/../../var/contacts';
-        $filepath = $dir . '/' . $queryParams['filename'];
+        $filepath = $dir . '/' . $filename;
 
         if (!file_exists($filepath)) {
             return new Response(
@@ -253,9 +253,9 @@ class ContactController extends AbstractController {
     }
 
     private function supprimerContact(Request $request): Response {
-        $queryParams = $request->getQueryParams();
+        $filename = $request->getUriParam('filename');
 
-        if (!isset($queryParams['filename'])) {
+        if ($filename === null) {
             return new Response(
                 json_encode(['error' => 'filename parameter is required']),
                 400,
@@ -264,7 +264,7 @@ class ContactController extends AbstractController {
         }
 
         $dir = __DIR__ . '/../../var/contacts';
-        $filepath = $dir . '/' . $queryParams['filename'];
+        $filepath = $dir . '/' . $filename;
 
         if (!file_exists($filepath)) {
             return new Response(
