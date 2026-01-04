@@ -12,15 +12,23 @@ class Router {
     
 
     public static function route(Request $request): Response {
-        $config = self::getConfig();
+        $cfg = self::getConfig();
 
-        foreach($config as $route) {
-            if(self::checkMethod($request, $route) === false || self::checkUri($request, $route) === false) {
+        foreach($cfg as $r) {
+            if(self::verifierMethode($request, $r) === false) {
                 continue;
             }
 
-            $controller = self::getControllerInstance($route['controller']);
-            return $controller->process($request);
+            $paramsUri = self::matcherUri($request, $r);
+            if($paramsUri === false) {
+                continue;
+            }
+
+            // mettre les params dans la request
+            $request->setUriParams($paramsUri);
+
+            $ctrl = self::getControllerInstance($r['controller']);
+            return $ctrl->process($request);
         }
 
         throw new \Exception('Route not found', 404);
@@ -34,28 +42,55 @@ class Router {
     }
 
 
-    private static function checkMethod(Request $request, array $route): bool {
+    private static function verifierMethode(Request $request, array $route): bool {
         return $request->getMethod() === $route['method'];
     }
 
-    private static function checkUri(Request $request, array $route): bool {
-        return $request->getUri() === $route['path'];
+    // check si l'uri match avec la route
+    private static function matcherUri(Request $request, array $route): array|false {
+        $uri = $request->getUri();
+        $chemin = strtok($uri, '?');
+        $cheminRoute = $route['path'];
+
+        // si y'a pas de {} c'est simple
+        if (strpos($cheminRoute, '{') === false) {
+            return $chemin === $cheminRoute ? [] : false;
+        }
+
+        // transformer en regex genre /contact/{filename} => /^\/contact\/([^\/]+)$/
+        $pattern = preg_replace('/\{([a-zA-Z0-9_]+)\}/', '([^/]+)', $cheminRoute);
+        $pattern = '#^' . $pattern . '$#';
+
+        if (!preg_match($pattern, $chemin, $resultats)) {
+            return false;
+        }
+
+        // recuperer les noms des params
+        preg_match_all('/\{([a-zA-Z0-9_]+)\}/', $cheminRoute, $nomsParams);
+
+        // faire le tableau avec les valeurs
+        $params = [];
+        for ($i = 0; $i < count($nomsParams[1]); $i++) {
+            $params[$nomsParams[1][$i]] = $resultats[$i + 1];
+        }
+
+        return $params;
     }
-    
+
     private static function getControllerInstance(string $controller): AbstractController {
-        $controllerClass = self::CONTROLLER_NAMESPACE_PREFIX . $controller;
+        $classe = self::CONTROLLER_NAMESPACE_PREFIX . $controller;
 
-        if(class_exists($controllerClass) === false) {
+        if(class_exists($classe) === false) {
             throw new \Exception('Route not found', 404);
         }
 
-        $controllerInstance = new $controllerClass();
+        $instance = new $classe();
 
-        if(is_subclass_of($controllerInstance, AbstractController::class)=== false){
+        if(is_subclass_of($instance, AbstractController::class)=== false){
             throw new \Exception('Route not found', 404);
         }
-        
-        return $controllerInstance;
+
+        return $instance;
     }
 
 }
