@@ -13,6 +13,8 @@ class ContactController extends AbstractController {
 
         if ($method === 'POST') {
             return $this->creerContact($request);
+        } elseif ($method === 'GET') {
+            return $this->getAllContacts($request);
         }
 
         return new Response(
@@ -80,6 +82,44 @@ class ContactController extends AbstractController {
         return new Response(
             json_encode(['file' => $nom_fichier]),
             201,
+            ['Content-Type' => 'application/json']
+        );
+    }
+
+    private function getAllContacts(Request $request): Response {
+        $dir = __DIR__ . '/../../var/contacts';
+
+        if (!is_dir($dir)) {
+            return new Response(
+                json_encode([]),
+                200,
+                ['Content-Type' => 'application/json']
+            );
+        }
+
+        $fichiers = scandir($dir);
+        $contacts = [];
+
+        foreach ($fichiers as $f) {
+            if ($f === '.' || $f === '..') {
+                continue;
+            }
+            if (!str_ends_with($f, '.json')) {
+                continue;
+            }
+
+            $path = $dir . '/' . $f;
+            $content = file_get_contents($path);
+            $contact = json_decode($content, true);
+
+            if ($contact !== null) {
+                $contacts[] = $contact;
+            }
+        }
+
+        return new Response(
+            json_encode($contacts),
+            200,
             ['Content-Type' => 'application/json']
         );
     }
