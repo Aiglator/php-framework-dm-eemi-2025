@@ -1,5 +1,10 @@
 [
   {
+    "path": "/nyancat",
+    "method": "GET",
+    "controller": "Nyancat"
+  },
+  {
     "path": "/test",
     "method": "GET",
     "controller": "TestController"
