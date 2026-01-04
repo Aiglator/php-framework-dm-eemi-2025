@@ -7,6 +7,7 @@ class Request {
     private string $methode;
     private array $headers;
     private string $corps;
+    private array $paramsUri = [];
 
     public function __construct() {
         $this->uri = $_SERVER['REQUEST_URI'];
@@ -34,5 +35,17 @@ class Request {
     public function getQueryParams(): array {
         parse_str($_SERVER['QUERY_STRING'] ?? '', $params);
         return $params;
+    }
+
+    public function setUriParams(array $params): void {
+        $this->paramsUri = $params;
+    }
+
+    public function getUriParams(): array {
+        return $this->paramsUri;
+    }
+
+    public function getUriParam(string $key): ?string {
+        return $this->paramsUri[$key] ?? null;
     }
 }
