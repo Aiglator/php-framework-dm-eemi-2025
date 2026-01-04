@@ -30,4 +30,9 @@ class Request {
     public function getBody(): string {
         return $this->corps;
     }
+
+    public function getQueryParams(): array {
+        parse_str($_SERVER['QUERY_STRING'] ?? '', $params);
+        return $params;
+    }
 }
