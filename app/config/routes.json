@@ -20,12 +20,17 @@
     "controller": "ContactController"
   },
   {
-    "path": "/contact",
+    "path": "/contact/{filename}",
+    "method": "GET",
+    "controller": "ContactController"
+  },
+  {
+    "path": "/contact/{filename}",
     "method": "PATCH",
     "controller": "ContactController"
   },
   {
-    "path": "/contact",
+    "path": "/contact/{filename}",
     "method": "DELETE",
     "controller": "ContactController"
   }
