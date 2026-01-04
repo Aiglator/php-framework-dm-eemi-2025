@@ -15,6 +15,8 @@ class ContactController extends AbstractController {
             return $this->creerContact($request);
         } elseif ($method === 'GET') {
             return $this->getAllContacts($request);
+        } elseif ($method === 'PATCH') {
+            return $this->modifierContact($request);
         }
 
         return new Response(
@@ -152,6 +154,94 @@ class ContactController extends AbstractController {
                 ['Content-Type' => 'application/json']
             );
         }
+
+        return new Response(
+            json_encode($contact),
+            200,
+            ['Content-Type' => 'application/json']
+        );
+    }
+
+    private function modifierContact(Request $request): Response {
+        $headers = $request->getHeaders();
+
+        if (!isset($headers['Content-Type']) || $headers['Content-Type'] !== 'application/json') {
+            return new Response(
+                json_encode(['error' => 'Content-Type must be application/json']),
+                400,
+                ['Content-Type' => 'application/json']
+            );
+        }
+
+        $queryParams = $request->getQueryParams();
+
+        if (!isset($queryParams['filename'])) {
+            return new Response(
+                json_encode(['error' => 'filename parameter is required']),
+                400,
+                ['Content-Type' => 'application/json']
+            );
+        }
+
+        $dir = __DIR__ . '/../../var/contacts';
+        $filepath = $dir . '/' . $queryParams['filename'];
+
+        if (!file_exists($filepath)) {
+            return new Response(
+                json_encode(['error' => 'Contact not found']),
+                404,
+                ['Content-Type' => 'application/json']
+            );
+        }
+
+        $body = $request->getBody();
+        $data = json_decode($body, true);
+
+        if ($data === null) {
+            return new Response(
+                json_encode(['error' => 'Invalid JSON']),
+                400,
+                ['Content-Type' => 'application/json']
+            );
+        }
+
+        // check qu'on modifie que les bons champs
+        $allowed = ['email', 'subject', 'message'];
+        foreach (array_keys($data) as $key) {
+            if (!in_array($key, $allowed)) {
+                return new Response(
+                    json_encode(['error' => 'Only email, subject and message can be updated']),
+                    400,
+                    ['Content-Type' => 'application/json']
+                );
+            }
+        }
+
+        if (empty($data)) {
+            return new Response(
+                json_encode(['error' => 'At least one property must be provided']),
+                400,
+                ['Content-Type' => 'application/json']
+            );
+        }
+
+        $fileContent = file_get_contents($filepath);
+        $contact = json_decode($fileContent, true);
+
+        // mise a jour des champs
+        if (isset($data['email'])) {
+            $contact['email'] = $data['email'];
+        }
+        if (isset($data['subject'])) {
+            $contact['subject'] = $data['subject'];
+        }
+        if (isset($data['message'])) {
+            $contact['message'] = $data['message'];
+        }
+
+        $contact['dateOfLastUpdate'] = time();
+
+        file_put_contents($filepath, json_encode($contact, JSON_PRETTY_PRINT));
 
         return new Response(
             json_encode($contact),
